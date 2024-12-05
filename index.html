@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="libraryApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca Digital</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <div class="container" ng-controller="LibraryController">
+    <header class="header">
+      <h1>Biblioteca Digital</h1>
+    </header>
+
+    <!-- Estadísticas -->
+    <div class="stats">
+      <p>Total de Libros: {{ books.length }}</p>
+      <p>Leídos: {{ countReadBooks() }}</p>
+      <p>No Leídos: {{ books.length - countReadBooks() }}</p>
+      <p>Favoritos: {{ countFavoriteBooks() }}</p>
+    </div>
+
+    <!-- Notificaciones -->
+    <notification-directive ng-repeat="notification in notifications" 
+      notification="notification" 
+      on-close="clearNotification($index)">
+    </notification-directive>
+
+    <!-- Filtros y búsqueda -->
+    <div class="filters">
+      <input type="text" ng-model="searchQuery" placeholder="Buscar libros..." class="search-input" />
+      <select ng-model="selectedCategory" class="category-select">
+        <option value="">Todas las Categorías</option>
+        <option ng-repeat="category in categories">{{ category }}</option>
+      </select>
+      <button ng-click="toggleFavorites()" class="btn-sort">
+        {{ showFavorites ? 'Mostrar Favoritos' : 'Mostrar Todos' }}
+      </button>
+      <button ng-click="sortBooks('title')" class="btn-sort">Ordenar por Título</button>
+      <button ng-click="sortBooks('author')" class="btn-sort">Ordenar por Autor</button>
+      <button ng-click="sortBooks('isRead')" class="btn-sort">Ordenar por Estado</button>
+    </div>
+
+    <!-- Formulario para agregar/editar un libro -->
+    <div class="form-container">
+      <h2>{{ isEditing ? 'Editar Libro' : 'Agregar Nuevo Libro' }}</h2>
+      <form name="bookForm" ng-submit="saveBook()">
+        <input type="text" ng-model="currentBook.title" placeholder="Título" class="input-field" required />
+        <input type="text" ng-model="currentBook.author" placeholder="Autor" class="input-field" required />
+        <select ng-model="currentBook.category" class="category-select" required>
+          <option value="" disabled selected>Selecciona una Categoría</option>
+          <option ng-repeat="category in categories">{{ category }}</option>
+        </select>
+        <input type="url" ng-model="currentBook.cover" placeholder="URL de la Portada (opcional)" class="input-field" />
+        <button type="submit" ng-disabled="bookForm.$invalid" class="btn-submit">{{ isEditing ? 'Guardar Cambios' : 'Agregar Libro' }}</button>
+      </form>
+    </div>
+
+    
+<!-- Lista de libros -->
+<div class="book-list">
+  <div class="book-card" 
+    ng-repeat="book in books | filter:searchQuery | categoryFilter:selectedCategory | favoritesFilter:showFavorites">
+    <div class="book-info">
+      <strong>{{ book.title }}</strong>
+      <p>{{ book.author }} ({{ book.category }})</p>
+      <span class="status" ng-class="{'read': book.isRead, 'unread': !book.isRead}">
+        {{ book.isRead ? 'Leído' : 'No Leído' }}
+      </span>
+    </div>
+    <div class="book-cover" ng-if="book.cover">
+      <img ng-src="{{ book.cover }}" alt="Portada del libro" />
+    </div>
+    <div class="book-actions">
+      <button ng-click="editBook(book)" class="btn-action">Editar</button>
+      <button ng-click="removeBook($index)" class="btn-action">Eliminar</button>
+      <button ng-click="toggleReadStatus(book)" class="btn-action">
+        {{ book.isRead ? 'No Leído' : 'Leído' }}
+      </button>
+      <button ng-click="toggleFavorite(book)" class="btn-action">
+        {{ book.isFavorite ? 'Quitar Favorito' : 'Favorito' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Paginación -->
+    <div class="pagination">
+      <button ng-click="changePage(currentPage - 1)" ng-disabled="currentPage === 1" class="btn-pagination">Anterior</button>
+      <span>Página {{ currentPage }} de {{ totalPages }}</span>
+      <button ng-click="changePage(currentPage + 1)" ng-disabled="currentPage === totalPages" class="btn-pagination">Siguiente</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
